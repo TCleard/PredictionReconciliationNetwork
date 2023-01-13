@@ -3,14 +3,14 @@
 namespace PRN
 {
 
-    public abstract class Processor<I, S>
+    public interface Processor<I, S>
         where I : Input
         where S : State
     {
     
-        public abstract S Process(I input, TimeSpan deltaTime);
+        S Process(I input, TimeSpan deltaTime);
     
-        public abstract void Rewind(S state);
+        void Rewind(S state);
     
     }
 
