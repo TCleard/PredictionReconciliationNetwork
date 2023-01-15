@@ -44,7 +44,6 @@
     <Compile Include="State\State.cs" />
     <Compile Include="State\StateConsitancyChecker.cs" />
     <Compile Include="Looper.cs" />
-    <Compile Include="Timer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
