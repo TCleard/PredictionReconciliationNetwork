@@ -1,4 +1,5 @@
 
+
 # PredictionReconciliationNetwork
 
 ## Summary
@@ -31,7 +32,7 @@ Clone the project, open it and build it with Visual Studio. Go get the generated
 A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and return a state. It will also reconcile your client if there's inconsistancy between the server and the client.
 An **input** is simply the instruction your processor needs to perform an action. It needs a **tick** value to inform the server *when* it's created.
 A **state** is the result of this processing, and needs the input's **tick** value so the client knows how far the reconciliation has to go in case of unconsistancy between the server and the client.
-
+Those **tick* values are set by the lib.
 
 Example (for Unity) :
 
@@ -55,7 +56,8 @@ public struct PlayerState: PRN.State {
 	public int tick;
 	public Vector3 position;
 
-	// You need to implement this method
+	// You need to implement those 2 methods
+	public void SetTick(int tick) => this.tick = tick;
 	public int GetTick() => tick;
 	
 }
@@ -75,7 +77,6 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	public PlayerState Process(PlayerInput input, TimeSpan deltaTime) {
         controller.Move((Vector3.forward * input.forward + Vector3.right * input.right).normalized * .01f * deltaTime.Milliseconds);
         return new PlayerState() {
-			tick = input.GetTick(),
 			position = transform.position // or controller.transform.position
 		};
 	}
@@ -130,7 +131,7 @@ public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> 
 
 }
 ```
-Note : You don't need to take care of the Input.**tick** value this time, as it is automatically set by the lib.
+Note : You don't need to take care of the Input.**tick** value, as it is automatically set by the lib.
 
 ### NetworkHandler
 The NetworkHandler is where the magic happens (almost).
@@ -152,13 +153,13 @@ It has multiple roles :
 
 It needs a **Looper** to know the state update frequency, and to ensure every connected players and the server run at the same speed.
 ```C#
-Looper looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
+PRN.Looper looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
 ```
 To make it *loop*, you need to make it *tick*
 ```C#
 public class Player: MonoBehaviour {
 
-	private Looper looper;
+	private PRN.Looper looper;
 	
 	private void Start() {
 		base.Start();
@@ -190,13 +191,13 @@ public class Player: NetworkBehaviour {
 	protected override void OnNetworkSpawn() {
 		base.OnNetworkSpawn();
 		looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
-		NetworkRole role;
+		PRN.NetworkRole role;
         if (IsServer) {
-            role = IsOwner? NetworkRole.HOST: NetworkRole.SERVER;
+            role = IsOwner? PRN.NetworkRole.HOST: PRN.NetworkRole.SERVER;
         } else {
-            role = IsOwner ? NetworkRole.OWNER: NetworkRole.CLIENT;
+            role = IsOwner ? PRN.NetworkRole.OWNER: PRN.NetworkRole.CLIENT;
         }
-		networkHandler = new NetworkHandler<PlayerInput, PlayerState>(
+		networkHandler = new PRN.NetworkHandler<PlayerInput, PlayerState>(
 			role: role,
 			looper: looper,
 			processor: processor,
@@ -239,6 +240,35 @@ public class Player: NetworkBehaviour {
 
 	[...]
 }
+```
+
+In order to send inputs and states throught Netcode RPC calls, your inputs and states need to implements Unity.Netcode.INetworkSerializable :
+
+
+```C#
+public struct PlayerInput: PRN.Input, Unity.Netcode.INetworkSerializable {
+	
+	[...]
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
+        serializer.SerializeValue(ref tick);
+        serializer.SerializeValue(ref forward);
+        serializer.SerializeValue(ref right);
+    }
+
+}
+
+public struct PlayerState: PRN.State, Unity.Netcode.INetworkSerializable {
+
+	[...]
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
+        serializer.SerializeValue(ref tick);
+        serializer.SerializeValue(ref position);
+    }
+	
+}
+
 ```
 
 Now that your data is synced between the server and the clients, your player should now move on the server and other clients.

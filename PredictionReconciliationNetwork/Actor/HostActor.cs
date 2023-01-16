@@ -33,6 +33,7 @@ namespace PRN
             {
                 lastInput = inputProvider.GetInput();
                 lastState = processor.Process(lastInput, tickDeltaTime);
+                lastState.SetTick(lastInput.GetTick());
                 onStateUpdate?.Invoke(lastState);
             }
 

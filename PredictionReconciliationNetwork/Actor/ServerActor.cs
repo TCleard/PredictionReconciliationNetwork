@@ -43,6 +43,7 @@ namespace PRN
                 {
                     lastInput = inputQueue.Dequeue();
                     S state = processor.Process(lastInput, tickDeltaTime);
+                    state.SetTick(lastInput.GetTick());
                     stateBuffer[lastInput.GetTick() % stateBuffer.Length] = state;
                     onStateUpdate?.Invoke(state);
                 }
