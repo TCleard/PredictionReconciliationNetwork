@@ -32,8 +32,9 @@ namespace PRN
             protected override void OnTick()
             {
                 lastInput = inputProvider.GetInput();
+                lastInput.SetTick(tick);
                 lastState = processor.Process(lastInput, tickDeltaTime);
-                lastState.SetTick(lastInput.GetTick());
+                lastState.SetTick(tick);
                 onStateUpdate?.Invoke(lastState);
             }
 

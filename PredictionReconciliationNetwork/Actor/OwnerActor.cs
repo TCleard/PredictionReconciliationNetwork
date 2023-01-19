@@ -64,7 +64,7 @@ namespace PRN
                 inputBuffer[bufferIndex] = input;
 
                 S state = processor.Process(input, tickDeltaTime);
-                state.SetTick(input.GetTick());
+                state.SetTick(tick);
                 stateBuffer[bufferIndex] = state;
 
                 onInputUpdate?.Invoke(input);
