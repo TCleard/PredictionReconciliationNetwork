@@ -1,14 +1,9 @@
-﻿namespace PRN
+﻿namespace PRN.Network
 {
 
-    namespace Network
+    public enum NetworkRole
     {
-
-        public enum NetworkRole
-        {
-            SERVER, HOST, OWNER, CLIENT
-        }
-
+        SERVER, HOST, OWNER, CLIENT
     }
 
 }
