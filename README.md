@@ -5,7 +5,7 @@
 ## Summary
 
 1. [Purpose](#purpose)
-2. [Import](#import) <br/>a. [Common](#common)<br/>b. [Unity](#unity)
+2. [Import](#import)
 3. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistencyChecker](#stateconsistencychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
 4. [What's next](#whats-next)
 5. [Conclusion](#conclusion)
@@ -13,23 +13,18 @@
 ## Purpose
 
 This C# project goal is to simplify online multiplayer games with Client-side prediction and Server reconciliation.
-It can be adapt in any languages as it is not bound to any engine (even though I've written it to work with Unity)
+It can be adapted in any languages as it is not bound to any engine (even though I've written it to work with Unity)
 
 ## Import
 
-### Common
-
-Copy all files present in the PredictionReconciliationNetwork folder (ignore Properties folder and PredictionReconciliationNetwork.csproj file) to your game.
-
-### Unity
-
-Clone the project, open it and build it with Visual Studio. Go get the generated .dll in bin/Debug and drag and drop it in your Unity Assets folder.
+Go to the [Release](https://github.com/TCleard/PredictionReconciliationNetwork/releases) page, download the latest .dll and import it into your project (for Unity, under the Assets folder).
+You can also pull this repository directly into your project.
 
 ## Usage
 
 ### Processor, Input and State
 
-A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and return a state. It will also reconcile your client if there's inconsistency between the server and the client.
+A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and returns a State. It will also reconcile your client if there's inconsistency between the server and the client.
 An **input** is simply the instruction your processor needs to perform an action. It needs a **tick** value to inform the server *when* it's created.
 A **state** is the result of this processing, and needs the input's **tick** value so the client knows how far the reconciliation has to go in case of unconsistency between the server and the client.
 Those **tick* values are set by the lib.
@@ -108,7 +103,7 @@ public class PlayerStateConsistencyChecker: PRN.StateConsistencyChecker<PlayerSt
 	
 }
 ```
-If this method return false, then there's an inconsistency. The lib will automatically called the Processor.**Rewind** method with the server state, syncing the server and the client, and then all the client inputs that has been processed since this state.tick will be reapplied.
+If this method return false, then there's an inconsistency. The lib will automatically called the Processor.**Rewind** method with the server state to restore, syncing the server and the client, and then all the client inputs that has been processed since this state.tick will be reapplied.
 
 ### InputProvider
 To provide an **input** to the processor, you'll need an **InputProvider**.
