@@ -6,7 +6,7 @@
 
 1. [Purpose](#purpose)
 2. [Import](#import) <br/>a. [Common](#common)<br/>b. [Unity](#unity)
-3. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistancyChecker](#stateconsistancychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
+3. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistencyChecker](#stateconsistencychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
 4. [What's next](#whats-next)
 5. [Conclusion](#conclusion)
 
@@ -29,9 +29,9 @@ Clone the project, open it and build it with Visual Studio. Go get the generated
 
 ### Processor, Input and State
 
-A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and return a state. It will also reconcile your client if there's inconsistancy between the server and the client.
+A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and return a state. It will also reconcile your client if there's inconsistency between the server and the client.
 An **input** is simply the instruction your processor needs to perform an action. It needs a **tick** value to inform the server *when* it's created.
-A **state** is the result of this processing, and needs the input's **tick** value so the client knows how far the reconciliation has to go in case of unconsistancy between the server and the client.
+A **state** is the result of this processing, and needs the input's **tick** value so the client knows how far the reconciliation has to go in case of unconsistency between the server and the client.
 Those **tick* values are set by the lib.
 
 Example (for Unity) :
@@ -82,7 +82,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	}
 
 	// You need to implement this method
-	// Called when an inconsistancy occures
+	// Called when an inconsistency occures
 	public void Rewind(PlayerState state) {
 		controller.enabled = false;
 		transform.position = state.position;
@@ -92,23 +92,23 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 }
 ```
 
-### StateConsistancyChecker
+### StateConsistencyChecker
 
 When an **input** is processed by a client, it generates a **state** that updates directly the client. It is required to also send this input to the server, so it's processed server-side. The server will so generates its own state, and will send it back to the client. The client then needs to know if he has correctly predicted the state.
 
 ```C#
-public class PlayerStateConsistancyChecker: PRN.StateConsistancyChecker<PlayerState> {
+public class PlayerStateConsistencyChecker: PRN.StateConsistencyChecker<PlayerState> {
 
 	// You need to implement this method
 	// serverState is the one sent back by the server to the client
 	// ownerState is the corresponding state the client predicted (they have the same tick value)
-	public bool IsConsistant(PlayerState serverState, PlayerState ownerState) {
+	public bool IsConsistent(PlayerState serverState, PlayerState ownerState) {
 		return Vector3.Distance(serverState.position, ownerState.position) <= .01f;
 	}
 	
 }
 ```
-If this method return false, then there's an inconsistancy. The lib will automatically called the Processor.**Rewind** method with the server state, syncing the server and the client, and then all the client inputs that has been processed since this state.tick will be reapplied.
+If this method return false, then there's an inconsistency. The lib will automatically called the Processor.**Rewind** method with the server state, syncing the server and the client, and then all the client inputs that has been processed since this state.tick will be reapplied.
 
 ### InputProvider
 To provide an **input** to the processor, you'll need an **InputProvider**.
@@ -144,7 +144,7 @@ It has multiple roles :
 	* your local player
 	* predicts a state based on his own input
 	* sends his input to the server
-	* reconciles its state if there's an inconsistancy with the server
+	* reconciles its state if there's an inconsistency with the server
 * Host :
 	* your local player, but also acts as a server
 	* no reconciliation on this side
@@ -182,7 +182,7 @@ public class Player: NetworkBehaviour {
 	[SerializeField]
 	private PlayerProcessor processor;
 	[SerializeField]
-	private PlayerStateConsistancyChecker consistancyChecker;
+	private PlayerStateConsistencyChecker consistencyChecker;
 	[SerializeField]
 	private PlayerInputProvider inputProvider;
 	
@@ -202,7 +202,7 @@ public class Player: NetworkBehaviour {
 			looper: looper,
 			processor: processor,
 			inputProvider: inputProvider,
-			consistancyChecker: consistancyChecker
+			consistencyChecker: consistencyChecker
 		);
 	}
 

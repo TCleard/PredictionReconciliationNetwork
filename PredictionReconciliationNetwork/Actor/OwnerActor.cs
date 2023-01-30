@@ -10,7 +10,7 @@ namespace PRN.Actor
 
         protected Processor<I, S> processor;
         protected InputProvider<I> inputProvider;
-        protected StateConsistancyChecker<S> consistancyChecker;
+        protected StateConsistencyChecker<S> consistencyChecker;
 
         private int bufferSize;
 
@@ -27,13 +27,13 @@ namespace PRN.Actor
             Looper looper,
             Processor<I, S> processor,
             InputProvider<I> inputProvider,
-            StateConsistancyChecker<S> consistancyChecker,
+            StateConsistencyChecker<S> consistencyChecker,
             int bufferSize
             ) : base(looper)
         {
             this.processor = processor;
             this.inputProvider = inputProvider;
-            this.consistancyChecker = consistancyChecker;
+            this.consistencyChecker = consistencyChecker;
             this.bufferSize = bufferSize;
             inputBuffer = new I[bufferSize];
             stateBuffer = new S[bufferSize];
@@ -75,7 +75,7 @@ namespace PRN.Actor
 
             int serverStateBufferIndex = lastServerState.GetTick() % bufferSize;
 
-            if (!consistancyChecker.IsConsistant(lastServerState, stateBuffer[serverStateBufferIndex]))
+            if (!consistencyChecker.IsConsistent(lastServerState, stateBuffer[serverStateBufferIndex]))
             {
                 // Rewind to latest coherent state
                 processor.Rewind(lastServerState);

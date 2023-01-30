@@ -24,7 +24,7 @@ namespace PRN.Network
             Looper looper,
             Processor<I, S> processor,
             InputProvider<I> inputProvider,
-            StateConsistancyChecker<S> consistancyChecker,
+            StateConsistencyChecker<S> consistencyChecker,
             int bufferSize = 512
         )
         {
@@ -59,7 +59,7 @@ namespace PRN.Network
                         looper: looper,
                         processor: processor,
                         inputProvider: inputProvider,
-                        consistancyChecker: consistancyChecker,
+                        consistencyChecker: consistencyChecker,
                         bufferSize: bufferSize
                     );
                     ownerActor.onInputUpdate += (input) =>
