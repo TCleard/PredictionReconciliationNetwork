@@ -1,4 +1,4 @@
-﻿namespace PRN.Network
+﻿namespace PRN
 {
 
     public enum NetworkRole

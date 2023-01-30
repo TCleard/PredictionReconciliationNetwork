@@ -1,7 +1,7 @@
 ﻿using PRN.Actor;
 using System;
 
-namespace PRN.Network
+namespace PRN
 {
 
     public class NetworkHandler<I, S>
