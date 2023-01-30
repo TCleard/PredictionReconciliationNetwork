@@ -5,7 +5,7 @@
 ## Summary
 
 1. [Purpose](#purpose)
-2. [Import](#import) <br/>a. [Common](#common)<br/>b. [Unity](#unity)
+2. [Import](#import)
 3. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistencyChecker](#stateconsistencychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
 4. [What's next](#whats-next)
 5. [Conclusion](#conclusion)
@@ -17,13 +17,8 @@ It can be adapt in any languages as it is not bound to any engine (even though I
 
 ## Import
 
-### Common
-
-Copy all files present in the PredictionReconciliationNetwork folder (ignore Properties folder and PredictionReconciliationNetwork.csproj file) to your game.
-
-### Unity
-
-Clone the project, open it and build it with Visual Studio. Go get the generated .dll in bin/Debug and drag and drop it in your Unity Assets folder.
+Go to the [Release](https://github.com/TCleard/PredictionReconciliationNetwork/releases) page, download the latest .dll and import it inio your project (for Unity, under the Assets folder).
+You can also pull this repository directly into your project.
 
 ## Usage
 
