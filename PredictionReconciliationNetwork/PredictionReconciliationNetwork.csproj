@@ -42,7 +42,7 @@
     <Compile Include="Network\NetworkRole.cs" />
     <Compile Include="Processor\Processor.cs" />
     <Compile Include="State\State.cs" />
-    <Compile Include="State\StateConsitancyChecker.cs" />
+    <Compile Include="State\StateConsitencyChecker.cs" />
     <Compile Include="Looper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
