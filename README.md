@@ -27,21 +27,23 @@ You can also pull this repository directly into your project.
 A **processor** holds the core logic of the object you need to sync over the network. It takes an Input as a parameter, and returns a State. It will also reconcile your client if there's inconsistency between the server and the client.
 An **input** is simply the instruction your processor needs to perform an action. It needs a **tick** value to inform the server *when* it's created.
 A **state** is the result of this processing, and needs the input's **tick** value so the client knows how far the reconciliation has to go in case of unconsistency between the server and the client.
-Those **tick* values are set by the lib.
+Those **tick** values are set by the lib.
 
 Example (for Unity) :
 
 ```C#
 // Your Input
-public struct PlayerInput: PRN.Input {
-	
-	public int tick;
-	public int forward;
-	public int right;
+public struct PlayerInput : PRN.Input
+{
 
-	// You need to implement those 2 methods
-	public void SetTick(int tick) => this.tick = tick;
-	public int GetTick() => tick;
+    public int tick;
+    public int forward;
+    public int right;
+    public bool jump;
+
+    // You need to implement those 2 methods
+    public void SetTick(int tick) => this.tick = tick;
+    public int GetTick() => tick;
 
 }
 
@@ -50,29 +52,55 @@ public struct PlayerState: PRN.State {
 
 	public int tick;
 	public Vector3 position;
+	public Vector3 movement;
+	public Vector3 gravity;
 
 	// You need to implement those 2 methods
 	public void SetTick(int tick) => this.tick = tick;
 	public int GetTick() => tick;
-	
+
 }
 
 // Your Processor
 public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerState> {
 
 	private CharacterController controller;
-	
+
+	[SerializeField]
+	private float movementSpeed = 8f;
+	[SerializeField]
+	private float jumpHeight = 2.5f;
+
+	[SerializeField]
+	private float gravityForce = -9.81f;
+
+	public Vector3 movement = Vector3.zero;
+	public Vector3 gravity = Vector3.zero;
+
 	private void Awake() {
-		base.Awake();
 		controller = GetComponent<CharacterController>();
 	}
-	
+
 	// You need to implement this method
 	// Your player logic happens here
 	public PlayerState Process(PlayerInput input, TimeSpan deltaTime) {
-        controller.Move((Vector3.forward * input.forward + Vector3.right * input.right).normalized * .01f * deltaTime.Milliseconds);
-        return new PlayerState() {
-			position = transform.position // or controller.transform.position
+		movement = (Vector3.forward * input.forward + Vector3.right * input.right).normalized * movementSpeed * (float) deltaTime.TotalSeconds;
+		if (controller.isGrounded) {
+			gravity = Vector3.zero;
+			if (input.jump) {
+				gravity = Vector3.up * Mathf.Sqrt(jumpHeight * 2 * -gravityForce) * (float) deltaTime.TotalSeconds;
+			}
+        }
+		if (gravity.y > 0) {
+			gravity += Vector3.up * gravityForce * Mathf.Pow((float) deltaTime.TotalSeconds, 2);
+		} else {
+			gravity += Vector3.up * gravityForce * Mathf.Pow((float) deltaTime.TotalSeconds, 2) * 1.3f;
+		}
+		controller.Move(movement + gravity);
+		return new PlayerState() {
+			position = transform.position,
+			movement = movement,
+			gravity = gravity
 		};
 	}
 
@@ -81,6 +109,8 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	public void Rewind(PlayerState state) {
 		controller.enabled = false;
 		transform.position = state.position;
+		movement = state.movement;
+		gravity = state.gravity;
 		controller.enabled = true;
 	}
 
@@ -92,15 +122,16 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 When an **input** is processed by a client, it generates a **state** that updates directly the client. It is required to also send this input to the server, so it's processed server-side. The server will so generates its own state, and will send it back to the client. The client then needs to know if he has correctly predicted the state.
 
 ```C#
-public class PlayerStateConsistencyChecker: PRN.StateConsistencyChecker<PlayerState> {
+public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.StateConsistencyChecker<PlayerState> {
 
 	// You need to implement this method
 	// serverState is the one sent back by the server to the client
 	// ownerState is the corresponding state the client predicted (they have the same tick value)
-	public bool IsConsistent(PlayerState serverState, PlayerState ownerState) {
-		return Vector3.Distance(serverState.position, ownerState.position) <= .01f;
-	}
-	
+	public bool IsConsistent(PlayerState serverState, PlayerState ownerState) =>
+		Vector3.Distance(serverState.position, ownerState.position) <= .01f
+			&& Vector3.Distance(serverState.movement, ownerState.movement) <= .01f
+			&& Vector3.Distance(serverState.gravity, ownerState.gravity) <= .01f;
+
 }
 ```
 If this method return false, then there's an inconsistency. The lib will automatically called the Processor.**Rewind** method with the server state to restore, syncing the server and the client, and then all the client inputs that has been processed since this state.tick will be reapplied.
@@ -111,16 +142,19 @@ To provide an **input** to the processor, you'll need an **InputProvider**.
 ```C#
 public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> {
 
-    private PlayerInput input;
+	private PlayerInput input;
+	public bool pendingJump = false;
 
 	private void Update() {
-		base.Update();
-        input.forward = (UnityEngine.Input.GetKey(KeyCode.Z) ? 1 : 0) - (UnityEngine.Input.GetKey(KeyCode.S) ? 1 : 0);
-        input.right = (UnityEngine.Input.GetKey(KeyCode.D) ? 1 : 0) - (UnityEngine.Input.GetKey(KeyCode.Q) ? 1 : 0);
+		input.forward = (Input.GetKey(KeyCode.Z) ? 1 : 0) - (Input.GetKey(KeyCode.S) ? 1 : 0);
+		input.right = (Input.GetKey(KeyCode.D) ? 1 : 0) - (Input.GetKey(KeyCode.Q) ? 1 : 0);
+		pendingJump |= Input.GetKeyDown(KeyCode.Space);
 	}
 
 	// You need to implement this method
 	public PlayerInput GetInput() {
+		input.jump = pendingJump;
+		pendingJump = false;
 		return input;
 	}
 
@@ -148,7 +182,7 @@ It has multiple roles :
 
 It needs a **Looper** to know the state update frequency, and to ensure every connected players and the server run at the same speed.
 ```C#
-PRN.Looper looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
+PRN.Looper looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 60f));
 ```
 To make it *loop*, you need to make it *tick*
 ```C#
@@ -157,12 +191,10 @@ public class Player: MonoBehaviour {
 	private PRN.Looper looper;
 	
 	private void Start() {
-		base.Start();
-		looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
+		looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 60f));
 	}
 
 	private void FixedUpdate() {
-		base.FixedUpdate();
 		looper.Tick(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 	}
 
@@ -177,22 +209,23 @@ public class Player: NetworkBehaviour {
 	[SerializeField]
 	private PlayerProcessor processor;
 	[SerializeField]
-	private PlayerStateConsistencyChecker consistencyChecker;
-	[SerializeField]
 	private PlayerInputProvider inputProvider;
-	
+	[SerializeField]
+	private PlayerStateConsistencyChecker consistencyChecker;
+
 	private Looper looper;
+	private NetworkHandler<PlayerInput, PlayerState> networkHandler;
 	
-	protected override void OnNetworkSpawn() {
+	public override void OnNetworkSpawn() {
 		base.OnNetworkSpawn();
-		looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 30f));
-		PRN.NetworkRole role;
-        if (IsServer) {
-            role = IsOwner? PRN.NetworkRole.HOST: PRN.NetworkRole.SERVER;
-        } else {
-            role = IsOwner ? PRN.NetworkRole.OWNER: PRN.NetworkRole.CLIENT;
-        }
-		networkHandler = new PRN.NetworkHandler<PlayerInput, PlayerState>(
+		looper = new Looper(TimeSpan.FromSeconds(1 / 60f));
+		NetworkRole role;
+		if (IsServer) {
+			role = IsOwner ? NetworkRole.HOST : NetworkRole.SERVER;
+		} else {
+			role = IsOwner ? NetworkRole.OWNER : NetworkRole.CLIENT;
+		}
+		networkHandler = new NetworkHandler<PlayerInput, PlayerState>(
 			role: role,
 			looper: looper,
 			processor: processor,
@@ -215,7 +248,7 @@ public class Player: NetworkBehaviour {
 
 	[...]
 	
-	protected override void OnNetworkSpawn() {
+	public override void OnNetworkSpawn() {
 		[...]
 		networkHandler.onSendInputToServer += SendInputServerRpc;
 		networkHandler.onSendStateToClient += SendStateClientRpc;
@@ -249,6 +282,7 @@ public struct PlayerInput: PRN.Input, Unity.Netcode.INetworkSerializable {
         serializer.SerializeValue(ref tick);
         serializer.SerializeValue(ref forward);
         serializer.SerializeValue(ref right);
+        serializer.SerializeValue(ref jump);
     }
 
 }
@@ -260,7 +294,9 @@ public struct PlayerState: PRN.State, Unity.Netcode.INetworkSerializable {
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
         serializer.SerializeValue(ref tick);
         serializer.SerializeValue(ref position);
-    }
+        serializer.SerializeValue(ref movement);
+        serializer.SerializeValue(ref gravity);
+	}
 	
 }
 
@@ -291,13 +327,24 @@ public class Player: NetworkBehaviour {
 }
 ```
 
+## Sample
+You can download the example project above in the [UnitySample](https://github.com/TCleard/PredictionReconciliationNetwork/tree/main/UnitySample) folder.
+
+Put the .dll into the Assets folder, then run the game. Press S to start as a server, H as an host and C as a client. Press Escape to disconnect.
+
+Build the project and run the executable and the game in Unity to test everything.
+
+On the following screenshot, the Unity instance is running as a server, and the 3 builds as clients.
+
+![UnitySampleScreenshot](UnitySampleScreenshot.png)
+
 ## What's next
 
-Knowing that every one is playing in the past of other clients (you are live, but you see old states of others clients, even the server is behind), my next goal is to create a way to extrapolate a client's state on the owner / host / server side. Right now, if you create a FPS game with this lib, if you shoot at someone, you're in fact shooting on it's past position, the server might not register any hit on your target. With an extrapolation on a client state, you can predict where it would be, so the owner would see a predicted futur position of the client he is aiming at.
+Knowing that every one is playing in the past of other clients (you are live, but you see old states of others clients, even the server is behind), my next goal is to create a way to extrapolate a client's state on the owner / host / server side. Right now, if you create a FPS game with this lib, if you shoot at someone, you're in fact shooting on its past position, the server might not register any hit on your target. With an extrapolation on a client state, you can predict where it would be, so the owner would see a predicted futur position of the client he is aiming at.
 
 ## Conclusion
 
 I hope I didn't forget anything, and that it's clear enough. Feel free to open a PR if you have any question, modification request, or whatever :D
 
-A little wink and a big thank you to [Ajackster](https://www.youtube.com/@Ajackster) to help me understanding Prediction Reconciliation with [this video](https://www.youtube.com/watch?v=TFLD9HWOc2k&t=14s&ab_channel=Ajackster) (which I highly recommend you to watch), who greatly inspired this project (<s>some</s> most of my code is in fact his)
+A little wink and a big thanks to [Ajackster](https://www.youtube.com/@Ajackster) for helping me understand Prediction Reconciliation with [this video](https://www.youtube.com/watch?v=TFLD9HWOc2k&t=14s&ab_channel=Ajackster) (which I highly recommend you to watch), who greatly inspired this project (<s>some</s> most of my code is in fact his)
 Also, thanks to Unity for providing Netcode for GameObjects ([Documentation](https://docs-multiplayer.unity3d.com/netcode/current/about/index.html), [GitHub](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects)), it motivated me to try and develop online games.
