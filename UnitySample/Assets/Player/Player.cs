@@ -7,6 +7,9 @@ public class Player : NetworkBehaviour
 {
 
 	[SerializeField]
+	private GameObject camera;
+
+	[SerializeField]
 	private Material ownerMaterial;
 	[SerializeField]
 	private Material clientMaterial;
@@ -41,6 +44,7 @@ public class Player : NetworkBehaviour
 		networkHandler.onSendStateToClient += SendStateClientRpc;
 		networkHandler.onState += OnState;
 		GetComponent<Renderer>().material = IsOwner ? ownerMaterial : clientMaterial;
+		camera.SetActive(IsOwner);
 	}
 
 	private void FixedUpdate() {

@@ -8,6 +8,8 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	[SerializeField]
 	private float movementSpeed = 8f;
 	[SerializeField]
+	private float lookSensitivity = 200f;
+	[SerializeField]
 	private float jumpHeight = 2.5f;
 
 	[SerializeField]
@@ -23,7 +25,8 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	// You need to implement this method
 	// Your player logic happens here
 	public PlayerState Process(PlayerInput input, TimeSpan deltaTime) {
-		movement = (Vector3.forward * input.forward + Vector3.right * input.right).normalized * movementSpeed * (float) deltaTime.TotalSeconds;
+		transform.Rotate(Vector3.up * input.deltaLookY * lookSensitivity * (float) deltaTime.TotalSeconds);
+		movement = (transform.forward * input.forward + transform.right * input.right).normalized * movementSpeed * (float) deltaTime.TotalSeconds;
 		if (controller.isGrounded) {
 			gravity = Vector3.zero;
 			if (input.jump) {
@@ -38,6 +41,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 		controller.Move(movement + gravity);
 		return new PlayerState() {
 			position = transform.position,
+			rotation = transform.rotation,
 			movement = movement,
 			gravity = gravity
 		};
@@ -48,6 +52,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 	public void Rewind(PlayerState state) {
 		controller.enabled = false;
 		transform.position = state.position;
+		transform.rotation = state.rotation;
 		movement = state.movement;
 		gravity = state.gravity;
 		controller.enabled = true;

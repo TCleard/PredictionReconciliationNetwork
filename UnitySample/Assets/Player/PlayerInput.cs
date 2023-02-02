@@ -4,8 +4,12 @@ public struct PlayerInput : PRN.Input, INetworkSerializable
 {
 
     public int tick;
+
     public int forward;
     public int right;
+
+    public float deltaLookY;
+
     public bool jump;
 
     // You need to implement those 2 methods
@@ -16,6 +20,7 @@ public struct PlayerInput : PRN.Input, INetworkSerializable
         serializer.SerializeValue(ref tick);
         serializer.SerializeValue(ref forward);
         serializer.SerializeValue(ref right);
+        serializer.SerializeValue(ref deltaLookY);
         serializer.SerializeValue(ref jump);
     }
 

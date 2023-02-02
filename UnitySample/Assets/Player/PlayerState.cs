@@ -5,6 +5,7 @@ public struct PlayerState: PRN.State, INetworkSerializable {
 
 	public int tick;
 	public Vector3 position;
+	public Quaternion rotation;
 	public Vector3 movement;
 	public Vector3 gravity;
 
@@ -15,7 +16,8 @@ public struct PlayerState: PRN.State, INetworkSerializable {
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter {
         serializer.SerializeValue(ref tick);
         serializer.SerializeValue(ref position);
-        serializer.SerializeValue(ref movement);
+        serializer.SerializeValue(ref rotation);
+		serializer.SerializeValue(ref movement);
         serializer.SerializeValue(ref gravity);
 	}
 
