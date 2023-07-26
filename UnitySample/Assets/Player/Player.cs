@@ -18,21 +18,21 @@ public class Player : NetworkBehaviour
 	[SerializeField]
 	private PlayerStateConsistencyChecker consistencyChecker;
 
-	private Looper looper;
+	private Ticker ticker;
 	private NetworkHandler<PlayerInput, PlayerState> networkHandler;
 
 	public override void OnNetworkSpawn() {
 		base.OnNetworkSpawn();
-		looper = new Looper(TimeSpan.FromSeconds(1 / 60f));
+		ticker = new Ticker(TimeSpan.FromSeconds(1 / 60f));
 		NetworkRole role;
 		if (IsServer) {
 			role = IsOwner ? NetworkRole.HOST : NetworkRole.SERVER;
 		} else {
-			role = IsOwner ? NetworkRole.OWNER : NetworkRole.CLIENT;
+			role = IsOwner ? NetworkRole.OWNER : NetworkRole.GUEST;
 		}
 		networkHandler = new NetworkHandler<PlayerInput, PlayerState>(
 			role: role,
-			looper: looper,
+			ticker: ticker,
 			processor: processor,
 			inputProvider: inputProvider,
 			consistencyChecker: consistencyChecker
@@ -44,7 +44,7 @@ public class Player : NetworkBehaviour
 	}
 
 	private void FixedUpdate() {
-		looper.Tick(TimeSpan.FromSeconds(Time.fixedDeltaTime));
+		ticker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 	}
 
 	[ServerRpc]
@@ -63,5 +63,10 @@ public class Player : NetworkBehaviour
 		// on the owner when it predicts a state and during its reconciliation
 		// on the client when it receives a state from the server
 	}
+
+    public override void OnDestroy() {
+		base.OnDestroy();
+		networkHandler.Dispose();
+    }
 
 }

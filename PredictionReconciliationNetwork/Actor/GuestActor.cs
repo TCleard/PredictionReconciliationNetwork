@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace PRN.Actor
 {
 
-    public class ClientActor<I, S>: Actor
+    public class GuestActor<I, S>: Actor
         where I : Input
         where S : State
     {
@@ -16,10 +16,10 @@ namespace PRN.Actor
 
         public event Action<S> onStateUpdate;
 
-        public ClientActor(
-            Looper looper,
+        public GuestActor(
+            Ticker ticker,
             Processor<I, S> processor
-        ) : base(looper)
+        ) : base(ticker)
         {
             this.processor = processor;
             stateQueue = new Queue<S>();

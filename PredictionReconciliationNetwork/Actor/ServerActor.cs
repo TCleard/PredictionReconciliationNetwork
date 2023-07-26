@@ -19,10 +19,10 @@ namespace PRN.Actor
         public event Action<S> onStateUpdate;
 
         public ServerActor(
-            Looper looper,
+            Ticker ticker,
             Processor<I, S> processor,
             int bufferSize
-            ) : base(looper)
+            ) : base(ticker)
         {
             this.processor = processor;
             inputQueue = new Queue<I>();

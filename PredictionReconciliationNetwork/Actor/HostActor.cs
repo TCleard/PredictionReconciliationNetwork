@@ -18,10 +18,10 @@ namespace PRN.Actor
         public event Action<S> onStateUpdate;
 
         public HostActor(
-            Looper looper,
+            Ticker ticker,
             Processor<I, S> processor,
             InputProvider<I> inputProvider
-            ) : base(looper)
+            ) : base(ticker)
         {
             this.processor = processor;
             this.inputProvider = inputProvider;

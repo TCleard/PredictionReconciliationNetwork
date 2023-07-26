@@ -12,7 +12,7 @@ namespace PRN
         private ServerActor<I, S> serverActor;
         private HostActor<I, S> hostActor;
         private OwnerActor<I, S> ownerActor;
-        private ClientActor<I, S> clentActor;
+        private GuestActor<I, S> guestActor;
 
         public event Action<I> onSendInputToServer;
         public event Action<S> onSendStateToClient;
@@ -21,7 +21,7 @@ namespace PRN
 
         public NetworkHandler(
             NetworkRole role,
-            Looper looper,
+            Ticker ticker,
             Processor<I, S> processor,
             InputProvider<I> inputProvider,
             StateConsistencyChecker<S> consistencyChecker,
@@ -32,7 +32,7 @@ namespace PRN
             {
                 case NetworkRole.SERVER:
                     serverActor = new ServerActor<I, S>(
-                        looper: looper,
+                        ticker: ticker,
                         processor: processor,
                         bufferSize: bufferSize
                     );
@@ -44,7 +44,7 @@ namespace PRN
                     break;
                 case NetworkRole.HOST:
                     hostActor = new HostActor<I, S>(
-                        looper: looper,
+                        ticker: ticker,
                         processor: processor,
                         inputProvider: inputProvider
                     );
@@ -56,7 +56,7 @@ namespace PRN
                     break;
                 case NetworkRole.OWNER:
                     ownerActor = new OwnerActor<I, S>(
-                        looper: looper,
+                        ticker: ticker,
                         processor: processor,
                         inputProvider: inputProvider,
                         consistencyChecker: consistencyChecker,
@@ -71,12 +71,12 @@ namespace PRN
                         onState?.Invoke(state);
                     };
                     break;
-                case NetworkRole.CLIENT:
-                    clentActor = new ClientActor<I, S>(
-                        looper: looper,
+                case NetworkRole.GUEST:
+                    guestActor = new GuestActor<I, S>(
+                        ticker: ticker,
                         processor: processor
                     );
-                    clentActor.onStateUpdate += (state) =>
+                    guestActor.onStateUpdate += (state) =>
                     {
                         onState?.Invoke(state);
                     };
@@ -94,8 +94,19 @@ namespace PRN
         {
             if (ownerActor != null)
                 ownerActor.OnServerStateReceived(state);
-            if (clentActor != null)
-                clentActor.OnServerStateReceived(state);
+            if (guestActor != null)
+                guestActor.OnServerStateReceived(state);
+        }
+
+        public void Dispose() {
+            if (serverActor != null)
+                serverActor.Dispose();
+            if (hostActor != null)
+                hostActor.Dispose();
+            if (ownerActor != null)
+                ownerActor.Dispose();
+            if (guestActor != null)
+                guestActor.Dispose();
         }
 
     }

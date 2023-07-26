@@ -1,6 +1,6 @@
 
 
-# PredictionReconciliationNetwork
+# PredictionReconciliationNetwork 1.1.0
 
 ## Summary
 
@@ -177,25 +177,25 @@ It has multiple roles :
 * Host :
 	* your local player, but also acts as a server
 	* no reconciliation on this side
-* Client :
+* Guest :
 	* just receives states
 
-It needs a **Looper** to know the state update frequency, and to ensure every connected players and the server run at the same speed.
+It needs a **Ticker** to know the state update frequency, and to ensure every connected players and the server run at the same speed.
 ```C#
-PRN.Looper looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 60f));
+PRN.Ticker ticker = new PRN.Ticker(TimeSpan.FromSeconds(1 / 60f));
 ```
-To make it *loop*, you need to make it *tick*
+To make it *tick*, you need to tell it when time passes by
 ```C#
 public class Player: MonoBehaviour {
 
-	private PRN.Looper looper;
+	private PRN.Ticker ticker;
 	
 	private void Start() {
-		looper = new PRN.Looper(TimeSpan.FromSeconds(1 / 60f));
+		ticker = new PRN.Ticker(TimeSpan.FromSeconds(1 / 60f));
 	}
 
 	private void FixedUpdate() {
-		looper.Tick(TimeSpan.FromSeconds(Time.fixedDeltaTime));
+		ticker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 	}
 
 }
@@ -213,21 +213,21 @@ public class Player: NetworkBehaviour {
 	[SerializeField]
 	private PlayerStateConsistencyChecker consistencyChecker;
 
-	private Looper looper;
+	private Ticker ticker;
 	private NetworkHandler<PlayerInput, PlayerState> networkHandler;
 	
 	public override void OnNetworkSpawn() {
 		base.OnNetworkSpawn();
-		looper = new Looper(TimeSpan.FromSeconds(1 / 60f));
+		ticker = new Ticker(TimeSpan.FromSeconds(1 / 60f));
 		NetworkRole role;
 		if (IsServer) {
 			role = IsOwner ? NetworkRole.HOST : NetworkRole.SERVER;
 		} else {
-			role = IsOwner ? NetworkRole.OWNER : NetworkRole.CLIENT;
+			role = IsOwner ? NetworkRole.OWNER : NetworkRole.GUEST;
 		}
 		networkHandler = new NetworkHandler<PlayerInput, PlayerState>(
 			role: role,
-			looper: looper,
+			ticker: ticker,
 			processor: processor,
 			inputProvider: inputProvider,
 			consistencyChecker: consistencyChecker
@@ -324,6 +324,21 @@ public class Player: NetworkBehaviour {
 	}
 
 	[...]
+}
+```
+
+One final thing : When your object is destroyed, it is still somehow bounded to the Ticker. To prevent any errors, in the `OnDestroy` method of you NetworkBehaviour, you should call `networkHandler.Dispose()`.
+
+```C#
+public class Player: NetworkBehaviour {
+
+	[...]
+	
+	public override void OnDestroy() {
+		base.OnDestroy();
+		networkHandler.Dispose();
+	}
+
 }
 ```
 

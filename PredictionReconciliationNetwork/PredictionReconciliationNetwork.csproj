@@ -35,7 +35,7 @@
     <Compile Include="Actor\OwnerActor.cs" />
     <Compile Include="Actor\HostActor.cs" />
     <Compile Include="Actor\ServerActor.cs" />
-    <Compile Include="Actor\ClientActor.cs" />
+    <Compile Include="Actor\GuestActor.cs" />
     <Compile Include="Input\InputProvider.cs" />
     <Compile Include="Input\Input.cs" />
     <Compile Include="Network\NetworkHandler.cs" />
@@ -43,7 +43,7 @@
     <Compile Include="Processor\Processor.cs" />
     <Compile Include="State\State.cs" />
     <Compile Include="State\StateConsitencyChecker.cs" />
-    <Compile Include="Looper.cs" />
+    <Compile Include="Ticker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

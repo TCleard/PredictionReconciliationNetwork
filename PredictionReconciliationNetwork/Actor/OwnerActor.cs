@@ -24,12 +24,12 @@ namespace PRN.Actor
         public event Action<S> onStateUpdate;
 
         public OwnerActor(
-            Looper looper,
+            Ticker ticker,
             Processor<I, S> processor,
             InputProvider<I> inputProvider,
             StateConsistencyChecker<S> consistencyChecker,
             int bufferSize
-            ) : base(looper)
+            ) : base(ticker)
         {
             this.processor = processor;
             this.inputProvider = inputProvider;

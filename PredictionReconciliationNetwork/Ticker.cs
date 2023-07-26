@@ -3,27 +3,27 @@
 namespace PRN
 {
 
-    public class Looper
+    public class Ticker
     {
 
         public TimeSpan loopDuration { get; private set; }
         public TimeSpan remainingTime { get; private set; }
 
-        public event Action onLoop;
+        public event Action onTick;
 
-        public Looper(TimeSpan loopDuration)
+        public Ticker(TimeSpan loopDuration)
         {
             this.loopDuration = loopDuration;
             remainingTime = loopDuration;
         }
 
-        public void Tick(TimeSpan deltaTime)
+        public void OnTimePassed(TimeSpan deltaTime)
         {
             remainingTime -= deltaTime;
             while (remainingTime <= TimeSpan.Zero)
             {
                 remainingTime += loopDuration;
-                onLoop?.Invoke();
+                onTick?.Invoke();
             }
         }
     }

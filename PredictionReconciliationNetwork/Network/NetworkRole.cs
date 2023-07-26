@@ -3,7 +3,7 @@
 
     public enum NetworkRole
     {
-        SERVER, HOST, OWNER, CLIENT
+        SERVER, HOST, OWNER, GUEST
     }
 
 }
