@@ -5,8 +5,8 @@ namespace PRN
 {
 
     public class NetworkHandler<I, S>
-        where I : Input
-        where S : State
+        where I : IInput
+        where S : IState
     {
 
         private ServerActor<I, S> serverActor;
@@ -22,9 +22,9 @@ namespace PRN
         public NetworkHandler(
             NetworkRole role,
             Ticker ticker,
-            Processor<I, S> processor,
-            InputProvider<I> inputProvider,
-            StateConsistencyChecker<S> consistencyChecker,
+            IProcessor<I, S> processor,
+            IInputProvider<I> inputProvider,
+            IStateConsistencyChecker<S> consistencyChecker,
             int bufferSize = 512
         )
         {

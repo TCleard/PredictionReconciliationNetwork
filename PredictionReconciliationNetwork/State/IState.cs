@@ -1,7 +1,7 @@
 ﻿namespace PRN
 {
 
-    public interface State
+    public interface IState
     {
 
         int GetTick();
