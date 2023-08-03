@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> {
+public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
 
 	private PlayerInput input;
 	public bool pendingJump = false;

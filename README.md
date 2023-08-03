@@ -33,7 +33,7 @@ Example (for Unity) :
 
 ```C#
 // Your Input
-public struct PlayerInput : PRN.Input
+public struct PlayerInput : PRN.IInput
 {
 
     public int tick;
@@ -48,7 +48,7 @@ public struct PlayerInput : PRN.Input
 }
 
 // Your State
-public struct PlayerState: PRN.State {
+public struct PlayerState: PRN.IState {
 
 	public int tick;
 	public Vector3 position;
@@ -62,7 +62,7 @@ public struct PlayerState: PRN.State {
 }
 
 // Your Processor
-public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerState> {
+public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerState> {
 
 	private CharacterController controller;
 
@@ -122,7 +122,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerSt
 When an **input** is processed by a client, it generates a **state** that updates directly the client. It is required to also send this input to the server, so it's processed server-side. The server will so generates its own state, and will send it back to the client. The client then needs to know if he has correctly predicted the state.
 
 ```C#
-public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.StateConsistencyChecker<PlayerState> {
+public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.IStateConsistencyChecker<PlayerState> {
 
 	// You need to implement this method
 	// serverState is the one sent back by the server to the client
@@ -140,7 +140,7 @@ If this method return false, then there's an inconsistency. The lib will automat
 To provide an **input** to the processor, you'll need an **InputProvider**.
 
 ```C#
-public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> {
+public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
 
 	private PlayerInput input;
 	public bool pendingJump = false;
@@ -274,7 +274,7 @@ In order to send inputs and states throught Netcode RPC calls, your inputs and s
 
 
 ```C#
-public struct PlayerInput: PRN.Input, Unity.Netcode.INetworkSerializable {
+public struct PlayerInput: PRN.IInput, Unity.Netcode.INetworkSerializable {
 	
 	[...]
 
@@ -287,7 +287,7 @@ public struct PlayerInput: PRN.Input, Unity.Netcode.INetworkSerializable {
 
 }
 
-public struct PlayerState: PRN.State, Unity.Netcode.INetworkSerializable {
+public struct PlayerState: PRN.IState, Unity.Netcode.INetworkSerializable {
 
 	[...]
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.StateConsistencyChecker<PlayerState> {
+public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.IStateConsistencyChecker<PlayerState> {
 
 	// You need to implement this method
 	// serverState is the one sent back by the server to the client

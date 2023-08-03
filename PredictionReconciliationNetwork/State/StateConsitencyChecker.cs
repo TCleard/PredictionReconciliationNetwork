@@ -1,7 +1,7 @@
 ﻿namespace PRN {
 
-    public interface StateConsistencyChecker<S>
-        where S : State
+    public interface IStateConsistencyChecker<S>
+        where S : IState
     {
     
         bool IsConsistent(S serverState, S ownerState);

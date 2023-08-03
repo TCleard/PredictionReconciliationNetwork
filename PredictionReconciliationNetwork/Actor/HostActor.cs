@@ -5,22 +5,22 @@ namespace PRN.Actor
 {
 
     public class HostActor<I, S>: Actor
-        where I: Input
-        where S: State
+        where I: IInput
+        where S: IState
     {
 
         private I lastInput;
         private S lastState;
 
-        private Processor<I, S> processor;
-        private InputProvider<I> inputProvider;
+        private IProcessor<I, S> processor;
+        private IInputProvider<I> inputProvider;
 
         public event Action<S> onStateUpdate;
 
         public HostActor(
             Ticker ticker,
-            Processor<I, S> processor,
-            InputProvider<I> inputProvider
+            IProcessor<I, S> processor,
+            IInputProvider<I> inputProvider
             ) : base(ticker)
         {
             this.processor = processor;
