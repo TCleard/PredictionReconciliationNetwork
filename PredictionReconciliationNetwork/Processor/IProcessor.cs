@@ -3,9 +3,9 @@
 namespace PRN
 {
 
-    public interface Processor<I, S>
-        where I : Input
-        where S : State
+    public interface IProcessor<I, S>
+        where I : IInput
+        where S : IState
     {
     
         S Process(I input, TimeSpan deltaTime);

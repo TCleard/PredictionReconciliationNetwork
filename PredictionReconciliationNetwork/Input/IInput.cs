@@ -1,7 +1,7 @@
 ﻿namespace PRN
 {
 
-    public interface Input
+    public interface IInput
     {
 
         void SetTick(int tick);
