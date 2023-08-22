@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
@@ -12,7 +13,7 @@ public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput>
 	}
 
 	// You need to implement this method
-	public PlayerInput GetInput() {
+	public PlayerInput GetInput(TimeSpan deltaTime) {
 		input.jump = pendingJump;
 		pendingJump = false;
 		return input;

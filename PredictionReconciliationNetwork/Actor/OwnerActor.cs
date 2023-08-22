@@ -56,7 +56,7 @@ namespace PRN.Actor
 
             int bufferIndex = tick % bufferSize;
 
-            I input = inputProvider.GetInput();
+            I input = inputProvider.GetInput(tickDeltaTime);
             input.SetTick(tick);
             inputBuffer[bufferIndex] = input;
 

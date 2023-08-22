@@ -1,11 +1,13 @@
-﻿namespace PRN
+﻿using System;
+
+namespace PRN
 {
 
     public interface IInputProvider<I>
         where I : IInput
     {
     
-        I GetInput();
+        I GetInput(TimeSpan deltaTime);
     
     }
 

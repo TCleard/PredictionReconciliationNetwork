@@ -29,7 +29,7 @@ namespace PRN.Actor
 
         protected override void OnTick()
         {
-            lastInput = inputProvider.GetInput();
+            lastInput = inputProvider.GetInput(tickDeltaTime);
             lastInput.SetTick(tick);
             lastState = processor.Process(lastInput, tickDeltaTime);
             lastState.SetTick(tick);
