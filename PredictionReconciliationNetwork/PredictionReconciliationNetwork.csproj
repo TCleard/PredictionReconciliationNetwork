@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -36,14 +36,14 @@
     <Compile Include="Actor\HostActor.cs" />
     <Compile Include="Actor\ServerActor.cs" />
     <Compile Include="Actor\GuestActor.cs" />
-    <Compile Include="Input\InputProvider.cs" />
-    <Compile Include="Input\Input.cs" />
+    <Compile Include="Input\IInputProvider.cs" />
+    <Compile Include="Input\IInput.cs" />
     <Compile Include="Network\NetworkHandler.cs" />
     <Compile Include="Network\NetworkRole.cs" />
-    <Compile Include="Processor\Processor.cs" />
-    <Compile Include="State\State.cs" />
-    <Compile Include="State\StateConsitencyChecker.cs" />
+    <Compile Include="Processor\IProcessor.cs" />
+    <Compile Include="State\IState.cs" />
     <Compile Include="Ticker.cs" />
+    <Compile Include="State\IStateConsistencyChecker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -3,8 +3,8 @@
 namespace PRN
 {
 
-    public interface InputProvider<I>
-        where I : Input
+    public interface IInputProvider<I>
+        where I : IInput
     {
     
         I GetInput(TimeSpan deltaTime);

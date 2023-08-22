@@ -5,11 +5,11 @@ namespace PRN.Actor
 {
 
     public class GuestActor<I, S>: Actor
-        where I : Input
-        where S : State
+        where I : IInput
+        where S : IState
     {
 
-        private Processor<I, S> processor;
+        private IProcessor<I, S> processor;
 
         private Queue<S> stateQueue;
         private S lastState;
@@ -18,7 +18,7 @@ namespace PRN.Actor
 
         public GuestActor(
             Ticker ticker,
-            Processor<I, S> processor
+            IProcessor<I, S> processor
         ) : base(ticker)
         {
             this.processor = processor;

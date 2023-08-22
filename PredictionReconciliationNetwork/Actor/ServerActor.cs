@@ -5,11 +5,11 @@ namespace PRN.Actor
 {
 
     public class ServerActor<I, S>: Actor
-        where I: Input
-        where S: State
+        where I: IInput
+        where S: IState
     {
 
-        protected Processor<I, S> processor;
+        protected IProcessor<I, S> processor;
 
         private Queue<I> inputQueue;
 
@@ -20,7 +20,7 @@ namespace PRN.Actor
 
         public ServerActor(
             Ticker ticker,
-            Processor<I, S> processor,
+            IProcessor<I, S> processor,
             int bufferSize
             ) : base(ticker)
         {

@@ -4,13 +4,13 @@ namespace PRN.Actor
 {
 
     public class OwnerActor<I, S> : Actor
-        where I : Input
-        where S : State
+        where I : IInput
+        where S : IState
     {
 
-        protected Processor<I, S> processor;
-        protected InputProvider<I> inputProvider;
-        protected StateConsistencyChecker<S> consistencyChecker;
+        protected IProcessor<I, S> processor;
+        protected IInputProvider<I> inputProvider;
+        protected IStateConsistencyChecker<S> consistencyChecker;
 
         private int bufferSize;
 
@@ -25,9 +25,9 @@ namespace PRN.Actor
 
         public OwnerActor(
             Ticker ticker,
-            Processor<I, S> processor,
-            InputProvider<I> inputProvider,
-            StateConsistencyChecker<S> consistencyChecker,
+            IProcessor<I, S> processor,
+            IInputProvider<I> inputProvider,
+            IStateConsistencyChecker<S> consistencyChecker,
             int bufferSize
             ) : base(ticker)
         {
