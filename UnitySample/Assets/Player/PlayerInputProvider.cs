@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> {
+public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
 
 	private PlayerInput input;
 	public bool pendingJump = false;
@@ -12,7 +13,7 @@ public class PlayerInputProvider: MonoBehaviour, PRN.InputProvider<PlayerInput> 
 	}
 
 	// You need to implement this method
-	public PlayerInput GetInput() {
+	public PlayerInput GetInput(TimeSpan deltaTime) {
 		input.jump = pendingJump;
 		pendingJump = false;
 		return input;

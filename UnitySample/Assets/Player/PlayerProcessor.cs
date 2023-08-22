@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class PlayerProcessor: MonoBehaviour, PRN.Processor<PlayerInput, PlayerState> {
+public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerState> {
 
 	private CharacterController controller;
 

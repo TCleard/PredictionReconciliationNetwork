@@ -1,7 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public struct PlayerState: PRN.State, INetworkSerializable {
+public struct PlayerState: PRN.IState, INetworkSerializable {
 
 	public int tick;
 	public Vector3 position;
