@@ -11,7 +11,8 @@ namespace PRN.Actor
 
         protected IProcessor<I, S> processor;
 
-        private Queue<I> inputQueue;
+
+        public Queue<I> inputQueue;
 
         private I lastInput;
         private S[] stateBuffer;
@@ -36,13 +37,41 @@ namespace PRN.Actor
 
         protected override void OnTick()
         {
-            while (inputQueue.Count > 0)
+            if (inputQueue.Count > 0)
             {
-                lastInput = inputQueue.Dequeue();
-                S state = processor.Process(lastInput, tickDeltaTime);
-                state.SetTick(lastInput.GetTick());
-                stateBuffer[lastInput.GetTick() % stateBuffer.Length] = state;
-                onStateUpdate?.Invoke(state);
+                if (inputQueue.Count > 20)
+                {
+                    for (int i = 0; i < 20; i++)
+                    {
+                        lastInput = inputQueue.Dequeue();
+                        S state = processor.Process(lastInput, tickDeltaTime);
+                        state.SetTick(lastInput.GetTick());
+                        stateBuffer[lastInput.GetTick() % stateBuffer.Length] = state;
+                        onStateUpdate?.Invoke(state);
+                    }
+                }
+                else if (inputQueue.Count > 5) 
+                {
+                    lastInput = inputQueue.Dequeue();
+                    S firstState = processor.Process(lastInput, tickDeltaTime);
+                    firstState.SetTick(lastInput.GetTick());
+                    stateBuffer[lastInput.GetTick() % stateBuffer.Length] = firstState;
+                    onStateUpdate?.Invoke(firstState);
+
+                    lastInput = inputQueue.Dequeue();
+                    S lastState = processor.Process(lastInput, tickDeltaTime);
+                    lastState.SetTick(lastInput.GetTick());
+                    stateBuffer[lastInput.GetTick() % stateBuffer.Length] = lastState;
+                    onStateUpdate?.Invoke(lastState);
+                }
+                else
+                {
+                    lastInput = inputQueue.Dequeue();
+                    S state = processor.Process(lastInput, tickDeltaTime);
+                    state.SetTick(lastInput.GetTick());
+                    stateBuffer[lastInput.GetTick() % stateBuffer.Length] = state;
+                    onStateUpdate?.Invoke(state);
+                }
             }
         }
 
