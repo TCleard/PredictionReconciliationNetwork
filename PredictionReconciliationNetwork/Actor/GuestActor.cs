@@ -12,7 +12,6 @@ namespace PRN.Actor
         private IProcessor<I, S> processor;
 
         private Queue<S> stateQueue;
-        private S lastState;
 
         public event Action<S> onStateUpdate;
 
@@ -32,11 +31,31 @@ namespace PRN.Actor
 
         protected override void OnTick()
         {
-            while (stateQueue.Count > 0)
+            if (stateQueue.Count > 0)
             {
-                lastState = stateQueue.Dequeue();
-                processor.Rewind(lastState);
-                onStateUpdate?.Invoke(lastState);
+                if (stateQueue.Count > 20)
+                {
+                    S state = stateQueue.Dequeue();
+                    for (int i = 0; i < stateQueue.Count; i++)
+                    {
+                        state = stateQueue.Dequeue();
+                    }
+                    processor.Rewind(state);
+                    onStateUpdate?.Invoke(state);
+                }
+                else if (stateQueue.Count > 5)
+                {
+                    stateQueue.Dequeue();
+                    S state = stateQueue.Dequeue();
+                    processor.Rewind(state);
+                    onStateUpdate?.Invoke(state);
+                }
+                else
+                {
+                    S lastState = stateQueue.Dequeue();
+                    processor.Rewind(lastState);
+                    onStateUpdate?.Invoke(lastState);
+                }
             }
         }
 
