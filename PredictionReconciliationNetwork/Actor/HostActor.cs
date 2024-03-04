@@ -13,7 +13,7 @@ namespace PRN.Actor {
         private IProcessor<I, S> processor;
         private IInputProvider<I> inputProvider;
 
-        public event Action<S> onStateUpdate;
+        public event Action<I, S> onInputStateUpdate;
 
         public HostActor(
             Ticker ticker,
@@ -29,7 +29,7 @@ namespace PRN.Actor {
             lastInput.SetTick(tick);
             lastState = processor.Process(lastInput, tickDeltaTime);
             lastState.SetTick(tick);
-            onStateUpdate?.Invoke(lastState);
+            onInputStateUpdate?.Invoke(lastInput, lastState);
         }
 
     }

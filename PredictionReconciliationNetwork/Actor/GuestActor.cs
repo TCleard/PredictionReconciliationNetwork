@@ -9,10 +9,8 @@ namespace PRN.Actor {
 
         private IProcessor<I, S> processor;
 
+        private I lastInput;
         private Queue<S> stateQueue;
-        private S lastState;
-
-        public event Action<S> onStateUpdate;
 
         public GuestActor(
             Ticker ticker,
@@ -22,16 +20,15 @@ namespace PRN.Actor {
             stateQueue = new Queue<S>();
         }
 
-        public void OnServerStateReceived(S state) {
+        public void OnServerInputStateReceived(I input, S state) {
+            lastInput = input;
             stateQueue.Enqueue(state);
         }
 
         protected override void OnTick() {
-            while (stateQueue.Count > 0) {
-                lastState = stateQueue.Dequeue();
-                processor.Rewind(lastState);
-                onStateUpdate?.Invoke(lastState);
-            }
+            while (stateQueue.Count > 0)
+                processor.Rewind(stateQueue.Dequeue());
+            processor.Process(lastInput, tickDeltaTime);
         }
 
     }

@@ -13,7 +13,7 @@ namespace PRN {
         private GuestActor<I, S> guestActor;
 
         public event Action<I> onSendInputToServer;
-        public event Action<S> onSendStateToClient;
+        public event Action<I, S> onSendInputStateToClient;
 
         public event Action<S> onState;
 
@@ -32,8 +32,8 @@ namespace PRN {
                         processor: processor,
                         bufferSize: bufferSize
                     );
-                    serverActor.onStateUpdate += (state) => {
-                        onSendStateToClient?.Invoke(state);
+                    serverActor.onInputStateUpdate += (input, state) => {
+                        onSendInputStateToClient?.Invoke(input, state);
                         onState?.Invoke(state);
                     };
                     break;
@@ -43,8 +43,8 @@ namespace PRN {
                         processor: processor,
                         inputProvider: inputProvider
                     );
-                    hostActor.onStateUpdate += (state) => {
-                        onSendStateToClient?.Invoke(state);
+                    hostActor.onInputStateUpdate += (input, state) => {
+                        onSendInputStateToClient?.Invoke(input, state);
                         onState?.Invoke(state);
                     };
                     break;
@@ -68,9 +68,6 @@ namespace PRN {
                         ticker: ticker,
                         processor: processor
                     );
-                    guestActor.onStateUpdate += (state) => {
-                        onState?.Invoke(state);
-                    };
                     break;
             }
         }
@@ -80,11 +77,11 @@ namespace PRN {
                 serverActor.OnInputReceived(input);
         }
 
-        public void OnServerStateReceived(S state) {
+        public void OnServerInputStateReceived(I input, S state) {
             if (ownerActor != null)
                 ownerActor.OnServerStateReceived(state);
             if (guestActor != null)
-                guestActor.OnServerStateReceived(state);
+                guestActor.OnServerInputStateReceived(input, state);
         }
 
         public void Dispose() {

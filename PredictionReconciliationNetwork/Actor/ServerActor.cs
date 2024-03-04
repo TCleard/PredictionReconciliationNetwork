@@ -14,7 +14,7 @@ namespace PRN.Actor {
         private I lastInput;
         private S[] stateBuffer;
 
-        public event Action<S> onStateUpdate;
+        public event Action<I, S> onInputStateUpdate;
 
         public ServerActor(
             Ticker ticker,
@@ -36,7 +36,7 @@ namespace PRN.Actor {
                 S state = processor.Process(lastInput, tickDeltaTime);
                 state.SetTick(lastInput.GetTick());
                 stateBuffer[lastInput.GetTick() % stateBuffer.Length] = state;
-                onStateUpdate?.Invoke(state);
+                onInputStateUpdate?.Invoke(lastInput, state);
             }
         }
 

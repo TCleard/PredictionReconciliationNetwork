@@ -7,11 +7,10 @@ namespace PRN.Actor {
         private Ticker ticker;
 
         protected int tick { get; private set; } = -1;
-        protected TimeSpan tickDeltaTime { get; private set; }
+        protected TimeSpan tickDeltaTime => ticker.loopDuration;
 
         public Actor(Ticker ticker) {
             this.ticker = ticker;
-            tickDeltaTime = ticker.loopDuration;
             ticker.onTick += InternalOnTick;
         }
 

@@ -38,7 +38,7 @@ public class Player : NetworkBehaviour
 			consistencyChecker: consistencyChecker
 		);
 		networkHandler.onSendInputToServer += SendInputServerRpc;
-		networkHandler.onSendStateToClient += SendStateClientRpc;
+		networkHandler.onSendInputStateToClient += SendInputStateClientRpc;
 		networkHandler.onState += OnState;
 		GetComponent<Renderer>().material = IsOwner ? ownerMaterial : clientMaterial;
 	}
@@ -53,8 +53,8 @@ public class Player : NetworkBehaviour
 	}
 
 	[ClientRpc]
-	private void SendStateClientRpc(PlayerState state) {
-		networkHandler.OnServerStateReceived(state);
+	private void SendInputStateClientRpc(PlayerInput input, PlayerState state) {
+		networkHandler.OnServerInputStateReceived(input, state);
 	}
 
 	private void OnState(PlayerState state) {
