@@ -1,13 +1,11 @@
 ﻿using System;
 using PRN;
 
-namespace PRN.Actor
-{
+namespace PRN.Actor {
 
     public class HostActor<I, S>: Actor
-        where I: IInput
-        where S: IState
-    {
+        where I : IInput
+        where S : IState {
 
         private I lastInput;
         private S lastState;
@@ -21,14 +19,12 @@ namespace PRN.Actor
             Ticker ticker,
             IProcessor<I, S> processor,
             IInputProvider<I> inputProvider
-            ) : base(ticker)
-        {
+            ) : base(ticker) {
             this.processor = processor;
             this.inputProvider = inputProvider;
         }
 
-        protected override void OnTick()
-        {
+        protected override void OnTick() {
             lastInput = inputProvider.GetInput();
             lastInput.SetTick(tick);
             lastState = processor.Process(lastInput, tickDeltaTime);

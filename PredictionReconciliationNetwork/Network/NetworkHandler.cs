@@ -1,13 +1,11 @@
 ﻿using PRN.Actor;
 using System;
 
-namespace PRN
-{
+namespace PRN {
 
     public class NetworkHandler<I, S>
         where I : IInput
-        where S : IState
-    {
+        where S : IState {
 
         private ServerActor<I, S> serverActor;
         private HostActor<I, S> hostActor;
@@ -26,18 +24,15 @@ namespace PRN
             IInputProvider<I> inputProvider,
             IStateConsistencyChecker<S> consistencyChecker,
             int bufferSize = 512
-        )
-        {
-            switch (role)
-            {
+        ) {
+            switch (role) {
                 case NetworkRole.SERVER:
                     serverActor = new ServerActor<I, S>(
                         ticker: ticker,
                         processor: processor,
                         bufferSize: bufferSize
                     );
-                    serverActor.onStateUpdate += (state) =>
-                    {
+                    serverActor.onStateUpdate += (state) => {
                         onSendStateToClient?.Invoke(state);
                         onState?.Invoke(state);
                     };
@@ -48,8 +43,7 @@ namespace PRN
                         processor: processor,
                         inputProvider: inputProvider
                     );
-                    hostActor.onStateUpdate += (state) =>
-                    {
+                    hostActor.onStateUpdate += (state) => {
                         onSendStateToClient?.Invoke(state);
                         onState?.Invoke(state);
                     };
@@ -62,12 +56,10 @@ namespace PRN
                         consistencyChecker: consistencyChecker,
                         bufferSize: bufferSize
                     );
-                    ownerActor.onInputUpdate += (input) =>
-                    {
+                    ownerActor.onInputUpdate += (input) => {
                         onSendInputToServer?.Invoke(input);
                     };
-                    ownerActor.onStateUpdate += (state) =>
-                    {
+                    ownerActor.onStateUpdate += (state) => {
                         onState?.Invoke(state);
                     };
                     break;
@@ -76,22 +68,19 @@ namespace PRN
                         ticker: ticker,
                         processor: processor
                     );
-                    guestActor.onStateUpdate += (state) =>
-                    {
+                    guestActor.onStateUpdate += (state) => {
                         onState?.Invoke(state);
                     };
                     break;
             }
         }
 
-        public void OnOwnerInputReceived(I input)
-        {
+        public void OnOwnerInputReceived(I input) {
             if (serverActor != null)
                 serverActor.OnInputReceived(input);
         }
 
-        public void OnServerStateReceived(S state)
-        {
+        public void OnServerStateReceived(S state) {
             if (ownerActor != null)
                 ownerActor.OnServerStateReceived(state);
             if (guestActor != null)

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PRN.Actor
-{
+namespace PRN.Actor {
 
     public class GuestActor<I, S>: Actor
         where I : IInput
-        where S : IState
-    {
+        where S : IState {
 
         private IProcessor<I, S> processor;
 
@@ -19,21 +17,17 @@ namespace PRN.Actor
         public GuestActor(
             Ticker ticker,
             IProcessor<I, S> processor
-        ) : base(ticker)
-        {
+        ) : base(ticker) {
             this.processor = processor;
             stateQueue = new Queue<S>();
         }
 
-        public void OnServerStateReceived(S state)
-        {
+        public void OnServerStateReceived(S state) {
             stateQueue.Enqueue(state);
         }
 
-        protected override void OnTick()
-        {
-            while (stateQueue.Count > 0)
-            {
+        protected override void OnTick() {
+            while (stateQueue.Count > 0) {
                 lastState = stateQueue.Dequeue();
                 processor.Rewind(lastState);
                 onStateUpdate?.Invoke(lastState);
