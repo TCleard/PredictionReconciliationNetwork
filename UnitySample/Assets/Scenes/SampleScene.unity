@@ -403,6 +403,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: -168977462906718785, guid: 3affb0440969f4fdcbf6eacc43540e86, type: 3}
+      propertyPath: NetworkConfig.TickRate
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: -168977462906718785, guid: 3affb0440969f4fdcbf6eacc43540e86, type: 3}
       propertyPath: NetworkConfig.PlayerPrefab
       value: 
       objectReference: {fileID: 1517143046776814287, guid: 97411eea9fc66428a99a3c6841a1f11c, type: 3}

@@ -23,6 +23,7 @@ namespace PRN {
             IProcessor<I, S> processor,
             IInputProvider<I> inputProvider,
             IStateConsistencyChecker<S> consistencyChecker,
+            StateSyncPolicy stateSyncPolicy = null,
             int bufferSize = 512
         ) {
             switch (role) {
@@ -66,8 +67,12 @@ namespace PRN {
                 case NetworkRole.GUEST:
                     guestActor = new GuestActor<I, S>(
                         ticker: ticker,
-                        processor: processor
+                        processor: processor,
+                        stateSyncPolicy: stateSyncPolicy != null ? stateSyncPolicy : new StateSyncPolicy()
                     );
+                    guestActor.onState += (state) => {
+                        onState?.Invoke(state);
+                    };
                     break;
             }
         }

@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
+public class NetworkPlayerInputProvider: MonoBehaviour, PRN.IInputProvider<NetworkPlayerInput> {
 
-	private PlayerInput input;
+	private NetworkPlayerInput input;
 	public bool pendingJump = false;
 
 	private void Update() {
@@ -12,7 +12,7 @@ public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput>
 	}
 
 	// You need to implement this method
-	public PlayerInput GetInput() {
+	public NetworkPlayerInput GetInput() {
 		input.jump = pendingJump;
 		pendingJump = false;
 		return input;

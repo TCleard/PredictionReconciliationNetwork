@@ -1,6 +1,6 @@
 using Unity.Netcode;
 
-public struct PlayerInput : PRN.IInput, INetworkSerializable
+public struct NetworkPlayerInput : PRN.IInput, INetworkSerializable
 {
 
     public int tick;
