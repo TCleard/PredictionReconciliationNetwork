@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerState> {
+public class NetworkPlayerProcessor: MonoBehaviour, PRN.IProcessor<NetworkPlayerInput, NetworkPlayerState> {
 
 	private CharacterController controller;
 
@@ -22,7 +22,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 
 	// You need to implement this method
 	// Your player logic happens here
-	public PlayerState Process(PlayerInput input, TimeSpan deltaTime) {
+	public NetworkPlayerState Process(NetworkPlayerInput input, TimeSpan deltaTime) {
 		movement = (Vector3.forward * input.forward + Vector3.right * input.right).normalized * movementSpeed * (float) deltaTime.TotalSeconds;
 		if (controller.isGrounded) {
 			gravity = Vector3.zero;
@@ -36,7 +36,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 			gravity += Vector3.up * gravityForce * Mathf.Pow((float) deltaTime.TotalSeconds, 2) * 1.3f;
 		}
 		controller.Move(movement + gravity);
-		return new PlayerState() {
+		return new NetworkPlayerState() {
 			position = transform.position,
 			movement = movement,
 			gravity = gravity
@@ -45,7 +45,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 
 	// You need to implement this method
 	// Called when an inconsistency occures
-	public void Rewind(PlayerState state) {
+	public void Rewind(NetworkPlayerState state) {
 		controller.enabled = false;
 		transform.position = state.position;
 		movement = state.movement;

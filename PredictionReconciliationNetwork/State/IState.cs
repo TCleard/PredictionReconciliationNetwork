@@ -1,12 +1,10 @@
-﻿namespace PRN
-{
+﻿namespace PRN {
 
-    public interface IState
-    {
+    public interface IState {
 
         int GetTick();
         void SetTick(int tick);
-    
+
     }
 
 }

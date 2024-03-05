@@ -1,20 +1,16 @@
 ﻿using System;
 
-namespace PRN.Actor
-{
+namespace PRN.Actor {
 
-    public abstract class Actor
-    {
+    public abstract class Actor {
 
         private Ticker ticker;
 
         protected int tick { get; private set; } = -1;
-        protected TimeSpan tickDeltaTime { get; private set; }
-    
-        public Actor(Ticker ticker)
-        {
+        protected TimeSpan tickDeltaTime => ticker.loopDuration;
+
+        public Actor(Ticker ticker) {
             this.ticker = ticker;
-            tickDeltaTime = ticker.loopDuration;
             ticker.onTick += InternalOnTick;
         }
 
@@ -22,13 +18,13 @@ namespace PRN.Actor
             tick++;
             OnTick();
         }
-    
+
         protected abstract void OnTick();
 
         public void Dispose() {
             ticker.onTick -= InternalOnTick;
         }
-    
+
     }
 
 }

@@ -1,12 +1,10 @@
 ﻿using System;
 
-namespace PRN.Actor
-{
+namespace PRN.Actor {
 
-    public class OwnerActor<I, S> : Actor
+    public class OwnerActor<I, S>: Actor
         where I : IInput
-        where S : IState
-    {
+        where S : IState {
 
         protected IProcessor<I, S> processor;
         protected IInputProvider<I> inputProvider;
@@ -29,8 +27,7 @@ namespace PRN.Actor
             IInputProvider<I> inputProvider,
             IStateConsistencyChecker<S> consistencyChecker,
             int bufferSize
-            ) : base(ticker)
-        {
+            ) : base(ticker) {
             this.processor = processor;
             this.inputProvider = inputProvider;
             this.consistencyChecker = consistencyChecker;
@@ -39,18 +36,15 @@ namespace PRN.Actor
             stateBuffer = new S[bufferSize];
         }
 
-        public void OnServerStateReceived(S state)
-        {
+        public void OnServerStateReceived(S state) {
             lastServerState = state;
         }
 
-        protected override void OnTick()
-        {
+        protected override void OnTick() {
             if (
                 !Equals(default(S), lastServerState)
                 && (Equals(default(S), lastProcessedState) || !Equals(lastServerState, lastProcessedState))
-            )
-            {
+            ) {
                 Reconcile();
             }
 
@@ -69,14 +63,12 @@ namespace PRN.Actor
 
         }
 
-        private void Reconcile()
-        {
+        private void Reconcile() {
             lastProcessedState = lastServerState;
 
             int serverStateBufferIndex = lastServerState.GetTick() % bufferSize;
 
-            if (!consistencyChecker.IsConsistent(lastServerState, stateBuffer[serverStateBufferIndex]))
-            {
+            if (!consistencyChecker.IsConsistent(lastServerState, stateBuffer[serverStateBufferIndex])) {
                 // Rewind to latest coherent state
                 processor.Rewind(lastServerState);
 
@@ -87,8 +79,7 @@ namespace PRN.Actor
                 S rewindedState;
                 int rewindedStateBufferIndex;
                 int tickToProcess = lastServerState.GetTick() + 1;
-                while (tickToProcess < tick)
-                {
+                while (tickToProcess < tick) {
                     rewindedState = processor.Process(inputBuffer[tickToProcess % bufferSize], tickDeltaTime);
                     rewindedStateBufferIndex = tickToProcess % bufferSize;
                     stateBuffer[rewindedStateBufferIndex] = rewindedState;
