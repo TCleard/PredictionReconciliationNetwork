@@ -50,6 +50,7 @@ public class NetworkPlayer : NetworkBehaviour
 		} else {
 			role = IsOwner ? NetworkRole.OWNER : NetworkRole.GUEST;
 		}
+
 		networkHandler = new NetworkHandler<NetworkPlayerInput, NetworkPlayerState>(
 			role: role,
 			ticker: processTicker,
@@ -61,6 +62,9 @@ public class NetworkPlayer : NetworkBehaviour
 		networkHandler.onSendInputToServer += SendInputToServer;
 		networkHandler.onSendInputStateToClient += SendInputStateToClient;
 		networkHandler.onState += OnState;
+		networkHandler.onTickerHackerDetected += () => {
+			NetworkObject.Despawn();
+		};
 
 		networkUpdateTicker.onTick += () => {
 			if (pendingOwnerInputs.Count > 0) {
@@ -77,7 +81,7 @@ public class NetworkPlayer : NetworkBehaviour
 		model.Init(isOwner: IsOwner);
 	}
 
-	private void FixedUpdate() {
+    private void FixedUpdate() {
 		processTicker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 		networkUpdateTicker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 	}

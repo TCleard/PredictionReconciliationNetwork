@@ -17,6 +17,8 @@ namespace PRN {
 
         public event Action<S> onState;
 
+        public event Action onTickerHackerDetected;
+
         public NetworkHandler(
             NetworkRole role,
             Ticker ticker,
@@ -36,6 +38,9 @@ namespace PRN {
                     serverActor.onInputStateUpdate += (input, state) => {
                         onSendInputStateToClient?.Invoke(input, state);
                         onState?.Invoke(state);
+                    };
+                    serverActor.onTickerHackerDetected += () => {
+                        onTickerHackerDetected?.Invoke();
                     };
                     break;
                 case NetworkRole.HOST:

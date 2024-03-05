@@ -30,7 +30,6 @@ public class PlayerModel : MonoBehaviour {
 
         positionSpring.goal = transform.position;
         positionSpring.value = positionSpring.goal;
-
     }
 
     private void Update() {
@@ -43,8 +42,6 @@ public class PlayerModel : MonoBehaviour {
     }
 
     private void OnDrawGizmos() {
-        if (isOwner)
-            return;
         Gizmos.color = Color.blue;
         Gizmos.DrawSphere(positionSpring.goal, .2f);
         Gizmos.DrawLine(positionSpring.value, positionSpring.goal);
