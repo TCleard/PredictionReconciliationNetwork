@@ -1,19 +1,47 @@
 
 
-# PredictionReconciliationNetwork 1.1.0
+# PredictionReconciliationNetwork 1.2.0
 
 ## Summary
 
 1. [Purpose](#purpose)
-2. [Import](#import)
-3. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistencyChecker](#stateconsistencychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
-4. [What's next](#whats-next)
-5. [Conclusion](#conclusion)
+2. [Changelog](#changelog)
+3. [Import](#import)
+4. [Usage](#usage)<br/>a. [Processor, Input and State](#processor-input-and-state)<br/>b. [StateConsistencyChecker](#stateconsistencychecker)<br/>c. [InputProvider](#inputprovider)<br/>d. [NetworkHandler](#networkhandler)
+5. [What's next](#whats-next)
+6. [Conclusion](#conclusion)
 
 ## Purpose
 
 This C# project goal is to simplify online multiplayer games with Client-side prediction and Server reconciliation.
 It can be adapted in any languages as it is not bound to any engine (even though I've written it to work with Unity)
+
+## Changelog
+
+<details>
+<summary><b>1.2.0 (05/03/2024)</b></summary>
+
+- [Added] 
+
+	- StateSyncPolicy : 
+
+		You can provide a StateSyncPolicy to a NetworkHandler constructor.
+
+		`StateSyncPolicy.catchUpThreshold` (default = 10) determins the max state count a Guest is left behind. When reaching this value, all pending states will be applied. Otherwise, only one state is applied.
+
+		`StateSyncPolicy.withPrediction` (default = false) allows the Guest to uses the last input received from the server to generate a state every tick, which can be usefull with a low tick rate update.
+
+	- Anti hack
+
+		NetworkHandler event `onTickerHackerDetected` is called server-side when it detects a client sending more inputs that it should be allowed to (regarding the handler's tick rate).
+
+		In the sample, I'm showing a way do deal with it : Simply kick the f*cker
+		```
+		networkHandler.onTickerHackerDetected += () => {
+			NetworkObject.Despawn();
+		};
+		```
+</details>
 
 ## Import
 
@@ -33,7 +61,7 @@ Example (for Unity) :
 
 ```C#
 // Your Input
-public struct PlayerInput : PRN.IInput
+public struct NetworkPlayerInput : PRN.IInput
 {
 
     public int tick;
@@ -48,7 +76,7 @@ public struct PlayerInput : PRN.IInput
 }
 
 // Your State
-public struct PlayerState: PRN.IState {
+public struct NetworkPlayerState: PRN.IState {
 
 	public int tick;
 	public Vector3 position;
@@ -62,7 +90,7 @@ public struct PlayerState: PRN.IState {
 }
 
 // Your Processor
-public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerState> {
+public class NetworkPlayerProcessor: MonoBehaviour, PRN.IProcessor<NetworkPlayerInput, NetworkPlayerState> {
 
 	private CharacterController controller;
 
@@ -83,7 +111,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 
 	// You need to implement this method
 	// Your player logic happens here
-	public PlayerState Process(PlayerInput input, TimeSpan deltaTime) {
+	public NetworkPlayerState Process(NetworkPlayerInput input, TimeSpan deltaTime) {
 		movement = (Vector3.forward * input.forward + Vector3.right * input.right).normalized * movementSpeed * (float) deltaTime.TotalSeconds;
 		if (controller.isGrounded) {
 			gravity = Vector3.zero;
@@ -97,7 +125,7 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 			gravity += Vector3.up * gravityForce * Mathf.Pow((float) deltaTime.TotalSeconds, 2) * 1.3f;
 		}
 		controller.Move(movement + gravity);
-		return new PlayerState() {
+		return new NetworkPlayerState() {
 			position = transform.position,
 			movement = movement,
 			gravity = gravity
@@ -122,12 +150,12 @@ public class PlayerProcessor: MonoBehaviour, PRN.IProcessor<PlayerInput, PlayerS
 When an **input** is processed by a client, it generates a **state** that updates directly the client. It is required to also send this input to the server, so it's processed server-side. The server will so generates its own state, and will send it back to the client. The client then needs to know if he has correctly predicted the state.
 
 ```C#
-public class PlayerStateConsistencyChecker: MonoBehaviour, PRN.IStateConsistencyChecker<PlayerState> {
+public class NetworkPlayerStateConsistencyChecker: MonoBehaviour, PRN.IStateConsistencyChecker<NetworkPlayerState> {
 
 	// You need to implement this method
 	// serverState is the one sent back by the server to the client
 	// ownerState is the corresponding state the client predicted (they have the same tick value)
-	public bool IsConsistent(PlayerState serverState, PlayerState ownerState) =>
+	public bool IsConsistent(NetworkPlayerState serverState, NetworkPlayerState ownerState) =>
 		Vector3.Distance(serverState.position, ownerState.position) <= .01f
 			&& Vector3.Distance(serverState.movement, ownerState.movement) <= .01f
 			&& Vector3.Distance(serverState.gravity, ownerState.gravity) <= .01f;
@@ -140,9 +168,9 @@ If this method return false, then there's an inconsistency. The lib will automat
 To provide an **input** to the processor, you'll need an **InputProvider**.
 
 ```C#
-public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput> {
+public class NetworkPlayerInputProvider: MonoBehaviour, PRN.IInputProvider<NetworkPlayerInput> {
 
-	private PlayerInput input;
+	private NetworkPlayerInput input;
 	public bool pendingJump = false;
 
 	private void Update() {
@@ -152,7 +180,7 @@ public class PlayerInputProvider: MonoBehaviour, PRN.IInputProvider<PlayerInput>
 	}
 
 	// You need to implement this method
-	public PlayerInput GetInput() {
+	public NetworkPlayerInput GetInput() {
 		input.jump = pendingJump;
 		pendingJump = false;
 		return input;
@@ -169,6 +197,7 @@ It has multiple roles :
 	* receives an input from a client
 	* generates the corresponding state
 	* sends the state to the clients
+	* notify if someone managed to hack throught the ticker rate to send more inputs that he should be
 * Owner : 
 	* your local player
 	* predicts a state based on his own input
@@ -186,16 +215,13 @@ PRN.Ticker ticker = new PRN.Ticker(TimeSpan.FromSeconds(1 / 60f));
 ```
 To make it *tick*, you need to tell it when time passes by
 ```C#
-public class Player: MonoBehaviour {
+public class NetworkPlayer: MonoBehaviour {
 
-	private PRN.Ticker ticker;
-	
-	private void Start() {
-		ticker = new PRN.Ticker(TimeSpan.FromSeconds(1 / 60f));
-	}
+	private const float PROCESS_TICK_RATE = 1 / 120f;
 
+	private PRN.Ticker processTicker = new Ticker(TimeSpan.FromSeconds(PROCESS_TICK_RATE));	
 	private void FixedUpdate() {
-		ticker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
+		processTicker.OnTimePassed(TimeSpan.FromSeconds(Time.fixedDeltaTime));
 	}
 
 }
@@ -204,28 +230,34 @@ public class Player: MonoBehaviour {
 Now, you have everything to create your NetworkHandler.
 I'll show you how to use it with [Netcode For GameObjects](https://github.com/Unity-Technologies/com.unity.netcode.gameobjects)
 ```C#
-public class Player: NetworkBehaviour {
+public class NetworkPlayer: NetworkBehaviour {
 
-	[SerializeField]
-	private PlayerProcessor processor;
-	[SerializeField]
-	private PlayerInputProvider inputProvider;
-	[SerializeField]
-	private PlayerStateConsistencyChecker consistencyChecker;
+	/**
+	Ticker
+	**/
 
-	private Ticker ticker;
-	private NetworkHandler<PlayerInput, PlayerState> networkHandler;
+	private NetworkPlayerProcessor processor;
+	private NetworkPlayerInputProvider inputProvider;
+	private NetworkPlayerStateConsistencyChecker consistencyChecker;
+
+	private NetworkHandler<NetworkPlayerInput, NetworkPlayerState> networkHandler;
+
+	private void Awake() {
+		processor = GetComponent<NetworkPlayerProcessor>();
+		inputProvider = GetComponent<NetworkPlayerInputProvider>();
+		consistencyChecker = GetComponent<NetworkPlayerStateConsistencyChecker>();
+	}
 	
 	public override void OnNetworkSpawn() {
 		base.OnNetworkSpawn();
-		ticker = new Ticker(TimeSpan.FromSeconds(1 / 60f));
+
 		NetworkRole role;
 		if (IsServer) {
 			role = IsOwner ? NetworkRole.HOST : NetworkRole.SERVER;
 		} else {
 			role = IsOwner ? NetworkRole.OWNER : NetworkRole.GUEST;
 		}
-		networkHandler = new NetworkHandler<PlayerInput, PlayerState>(
+		networkHandler = new NetworkHandler<NetworkPlayerInput, NetworkPlayerState>(
 			role: role,
 			ticker: ticker,
 			processor: processor,
@@ -274,7 +306,7 @@ In order to send inputs and states throught Netcode RPC calls, your inputs and s
 
 
 ```C#
-public struct PlayerInput: PRN.IInput, Unity.Netcode.INetworkSerializable {
+public struct NetworkPlayerInput: PRN.IInput, Unity.Netcode.INetworkSerializable {
 	
 	[...]
 
@@ -287,7 +319,7 @@ public struct PlayerInput: PRN.IInput, Unity.Netcode.INetworkSerializable {
 
 }
 
-public struct PlayerState: PRN.IState, Unity.Netcode.INetworkSerializable {
+public struct NetworkPlayerState: PRN.IState, Unity.Netcode.INetworkSerializable {
 
 	[...]
 
@@ -307,7 +339,7 @@ Now that your data is synced between the server and the clients, your player sho
 If you need to perform specific tasks when a state is processed, you can subscribe to the **onState** action on the network handler.
 
 ```C#
-public class Player: NetworkBehaviour {
+public class NetworkPlayer: NetworkBehaviour {
 
 	[...]
 	
@@ -330,7 +362,7 @@ public class Player: NetworkBehaviour {
 One final thing : When your object is destroyed, it is still somehow bounded to the Ticker. To prevent any errors, in the `OnDestroy` method of you NetworkBehaviour, you should call `networkHandler.Dispose()`.
 
 ```C#
-public class Player: NetworkBehaviour {
+public class NetworkPlayer: NetworkBehaviour {
 
 	[...]
 	
